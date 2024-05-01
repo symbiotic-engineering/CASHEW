@@ -16,3 +16,15 @@ bulkModulus = rho .* ([dP dP]./dRho);
 bulkModulus = bulkModulus'; %  adjust for input to piston
 rho = rho'; % adjust for input to piston
 
+cp = ones(size(rho))*0.846;
+
+dRhoP = diff(rho);
+dRhoP = [dRhoP;dRhoP];
+for i=1:3
+    for j=1:2
+        dRhoP(j,i) = -0.1;
+    end
+end
+
+dT = ones(size(rho))*diff(temp);
+alpha = abs(-(1./rho) .* (dRhoP./dT));
