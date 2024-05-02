@@ -28,3 +28,7 @@ end
 
 dT = ones(size(rho))*diff(temp);
 alpha = abs(-(1./rho) .* (dRhoP./dT));
+
+tempMatrix = repmat(temp,1,length(rho));
+cv= cp - (tempMatrix .* bulkModulus .* (alpha).^2)./rho;
+
