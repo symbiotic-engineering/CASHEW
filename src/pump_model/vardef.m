@@ -1,34 +1,39 @@
 piston_area = 0.26;     %   [m^2]   Area of Piston
-rhoTPData = readmatrix("../../data/CO2TempData.csv");
-temp = [30;40]; % degC
-pressure = flip([30;20;10;9;8;7;6;5;4;3;2;1;0.007]); % MPa
-rhoAt30 = rhoTPData(:,2); 
-rhoAt40 = rhoTPData(:,5); 
-rho = [rhoAt30 rhoAt40]; % kg/m^3
+initialRead = readmatrix("../../data/CO2TempData.csv");
+[r,c] = size(initialRead);
+temp = initialRead(1,2:c); % degC
+pressure = initialRead(2:r,1); % MPa
+rho = initialRead(2:r,2:c); % kg/m^3
 
 dP = [diff(pressure)]; 
 dP = [dP; dP(length(dP))]; % append final value
+dP = repmat(dP,1,c-1);
 
 dRho = [diff(rho)];
 dRho = [dRho ; dRho(length(dRho),:)]; % append final row
 
-bulkModulus = rho .* ([dP dP]./dRho);
+bulkModulus = rho .* (dP./dRho);
 bulkModulus = bulkModulus'; %  adjust for input to piston
 rho = rho'; % adjust for input to piston
 
-cp = ones(size(rho))*0.846;
+cp = ones(size(rho))*110.846; %%%%%%%%%% changed to eliminate issue
 
 dRhoP = diff(rho);
-dRhoP = [dRhoP;dRhoP];
-for i=1:3
-    for j=1:2
-        dRhoP(j,i) = -0.1;
+dRhoP = [dRhoP; dRhoP(c-2,:)];
+for i=1:r-1
+    for j=1:c-1
+        if dRhoP(j,i) == 0
+            dRhoP(j,i) = -0.1;
+        end
     end
 end
 
-dT = ones(size(rho))*diff(temp);
+dT = diff(temp);
+dT = [dT dT(length(dT))];
+dT = repmat(dT,r-1,1)';
+
 alpha = abs(-(1./rho) .* (dRhoP./dT));
 
-tempMatrix = repmat(temp,1,length(rho));
-cv= cp - (tempMatrix .* bulkModulus .* (alpha).^2)./rho;
+% tempMatrix = repmat(temp,1,length(rho))+273.15;
+% cv = cp - (tempMatrix .* bulkModulus .* (alpha).^2)./rho;
 
