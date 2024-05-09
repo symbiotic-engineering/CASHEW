@@ -1,3 +1,3 @@
-P = 8e6;
-T = 304;
-piston_area = 0.26;
+P = 8; % MPa
+T = 305; % K
+piston_area = 0.26; % m^2
