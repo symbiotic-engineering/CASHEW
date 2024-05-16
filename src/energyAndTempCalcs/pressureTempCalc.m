@@ -94,10 +94,16 @@ Toc = 290.15; % some constant (for now)
 deltaZ = 1; % try a constant for now
 R =  0.009;
 k = 45; 
-A = pi*0.6096*0.6096;
+outer_radius_pipe = 0.5; % m
+thickness_pipe = 0.01; % m
+inner_radius_pipe = outer_radius_pipe - thickness_pipe;
+A_pipe = pi*(outer_radius_pipe^2 - inner_radius_pipe); % cross sectional area of pipe
 
 
 %% Temperature Calculation
+rho_pipe = 7900;
+c_pipe = 500;
+heat_capacity_pipe = A_pipe * deltaZ * rho_pipe * c_pipe;
 
 %create empty lists to populate
 TCO2 = zeros(1,depth+1);
@@ -108,8 +114,15 @@ TCO2(1) = 304.25; %minimum value to maintain supercritical state
 TS(1) = 200;
 
 for i = 1:depth
-    TCO2(i+1) = (-2*pi*R*k*(TS(i)-TCO2(i))- (g0*deltaZ) - (deltaP/rhoCO2(i)) - (m*C*TCO2(i)))/(m*C); 
-    TS(i+1)   = (-2*pi*R*k*(TS(i)-TCO2(i)) + (h_new*A*(Toc- TS(i))) - (m*C*TS(i)))/(m*C); 
+    heat_capacity_CO2 = m(i) * C;
+    heat_xfer_from_CO2_to_pipe = 2*pi*R*k*(TCO2(i) - TS(i));
+
+    net_heat_xfer_into_CO2  = -heat_xfer_from_CO2_to_pipe + g0*deltaZ + deltaP(i)/rhoCO2(i);
+    net_heat_xfer_into_pipe =  heat_xfer_from_CO2_to_pipe - h_new*A_pipe*(TS(i) - Toc);
+
+    % net heat xfer = heat capacity * ( T(i+1) - T(i) )
+    TCO2(i+1) = ( net_heat_xfer_into_CO2  + heat_capacity_CO2  * TCO2(i) ) / heat_capacity_CO2; 
+    TS(i+1)   = ( net_heat_xfer_into_pipe + heat_capacity_pipe * TS(i)   ) / heat_capacity_pipe; 
 end 
 
 
