@@ -16,7 +16,7 @@ bulkModulus = rho .* (dP./dRho);
 bulkModulus = bulkModulus'; %  adjust for input to piston
 rho = rho'; % adjust for input to piston
 
-cp = ones(size(rho))*110.846; %%%%%%%%%% changed to eliminate issue
+cp = ones(size(rho))*1.846; %%%%%%%%%% changed to eliminate issue
 
 dRhoP = diff(rho);
 dRhoP = [dRhoP; dRhoP(c-2,:)];
