@@ -96,7 +96,7 @@ k_pipe   = 45;    % thermal conductivity steel [W/(m C)]
 k_insu   = 0.015; % thermal conductivity insulation [W/(m C)] - from https://www.aerogel.com/wp-content/uploads/2021/08/Spaceloft-Subsea-Datasheet.pdf
 rho_pipe = 7900;  % density steel [kg/m^3]
 c_pipe   = 500;   % specific heat steel [J / (kg C)]
-P_heat = 1250;    % heating of CO2 [W]
+P_heat   = 45;     % heating of CO2 [W]
 
 outer_radius_pipe = 0.5;  % [m]
 thickness_pipe    = 0.01; % [m]
@@ -129,7 +129,7 @@ total_thermal_resistance = therm_resistance_cond_pipe + therm_resistance_cond_in
 T_CO2   = zeros(1,depth+1); % temperature of CO2
 
 %initialize TCO2 at the surface of the ocean
-T_CO2(1) = 304.25; % minimum value to maintain supercritical state [C]
+T_CO2(1) = 31; % minimum value to maintain supercritical state [C]
 
 for i = 1:depth
     heat_xfer_from_CO2_to_ocean = 1/total_thermal_resistance * (T_CO2(i) - T_oc);
