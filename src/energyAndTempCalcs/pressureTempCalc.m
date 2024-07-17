@@ -25,8 +25,8 @@ c_pipe   = 500;   % specific heat steel [J / (kg C)]
 P_heat   = 45;    % heating of CO2 [W]
 
 % supercritical CO2
-T_supercritical     = 31;    % minimum temperature of CO2 to maintain supercritical state [C]
-c_CO2    = 0.709; % specific heat of CO2 - some constant (for now) [J / (kg C)]
+T_supercritical = 31;    % minimum temperature of CO2 to maintain supercritical state [C]
+c_CO2           = 0.709; % specific heat of CO2 - some constant (for now) [J / (kg C)]
 P_supercritical = 7.37 * 1e6; % [Pa] requirement
 
 % pipe dimensions
@@ -54,7 +54,7 @@ end
 
 %% calculate CO2 density at depth for different massflows
 
-mdot_Mt_yr = 20:20:200; % massflow of CO2 in megatons/yr
+mdot_Mt_yr = [1 20:20:180]; % massflow of CO2 in megatons/yr
 sec_per_yr = 365.25 * 24 * 60 * 60;
 mdot = mdot_Mt_yr * 1e9 / sec_per_yr; % convert from megatons/yr to kg/s
 D = 2*inner_radius_pipe;
