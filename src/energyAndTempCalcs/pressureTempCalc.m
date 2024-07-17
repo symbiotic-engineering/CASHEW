@@ -54,7 +54,7 @@ end
 
 %% calculate CO2 density at depth for different massflows
 
-mdot_Mt_yr = 10:10:100; % massflow of CO2 in megatons/yr
+mdot_Mt_yr = 20:20:200; % massflow of CO2 in megatons/yr
 sec_per_yr = 365.25 * 24 * 60 * 60;
 mdot = mdot_Mt_yr * 1e9 / sec_per_yr; % convert from megatons/yr to kg/s
 D = 2*inner_radius_pipe;
@@ -69,10 +69,11 @@ end
 figure
 plot(mdot_Mt_yr,P_surface_required/1e6)
 hold on
-%plot([0 max(mdot_Mt_yr)],P_supercritical*[1 1]/1e6)
+plot([0 max(mdot_Mt_yr)],P_supercritical*[1 1]/1e6)
 xlabel('Desired Massflow of CO2 (Mt/yr)')
 ylabel('Required Pressure at Surface (MPa)')
-%legend('Calculation from density and loss','Supercritical requirement')
+legend('Calculation from density and loss','Supercritical requirement')
+improvePlot
 
 %% calculate allowable pressure in a pipe
 % contsraint: no pipe explosion

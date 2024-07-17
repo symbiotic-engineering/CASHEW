@@ -28,17 +28,21 @@ function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_sur
 
         % note: delta_h_i=1 by convention
         deltaP_hydro_i = g * rho_i; % Pa, iterative hydrostatic pressure
+
+        Q = mdot / rho_i;
+        A = pi/4 * D^2;
+        v = Q/A;
+
         if i < h_seafloor % pipe loss
-            deltaP_loss_i = 128 * mdot / (pi * D^4) * mu_i / rho_i^2; % assumes laminar flow so f = 64/Re
+            f = 0.015; % turbulent friction factor, taken for roughness ~5e-4 at high Re on Moody chart.
+            deltaP_loss_i = 1/2 * rho_i * v^2 * f/D;
         else % injection loss
             fracking = false;
             if fracking
                 P_fracking = 2e6 / 200; % hardcoded for now, corresponding to 2MPa over 200m
                 delta_P_loss_i = P_fracking;
             else % linear Darcy loss based on rock permeability
-                Q = mdot / rho_i;
-                A = pi/4 * D^2;
-                delta_P_loss_i = mu_i * Q / (k * A);
+                delta_P_loss_i = mu_i * v / k;
             end
         end
         deltaP_i = deltaP_hydro_i - deltaP_loss_i;
