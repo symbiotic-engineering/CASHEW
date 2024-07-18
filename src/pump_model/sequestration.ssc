@@ -1,0 +1,78 @@
+component sequestration
+   
+nodes
+    A = foundation.two_phase_fluid.two_phase_fluid; % A:left
+    B = foundation.two_phase_fluid.two_phase_fluid; % B:right
+end
+
+parameters
+    h_seafloor = {2700, 'm'}    % depth of seafloor
+    h_underground = {200, 'm'}  % depth under the sea floor of sequestration
+    g = {9.8, 'm/s^2'}          % gravitational acceleration
+    D = {0.5, 'm'}              % diameter of pipe
+    k = {1e-17,''}              % k?
+end
+
+variables (Access = protected)
+    mdot_A = {0, 'kg/s'}; % Mass flow rate into port A
+    mdot_B = {0, 'kg/s'}; % Mass flow rate into port B
+    Phi_A  = {0, 'kW'  }; % Energy flow rate into port A
+    Phi_B  = {0, 'kW'  }; % Energy flow rate into port B
+end
+
+branches
+    mdot_A : A.mdot -> *;
+    mdot_B : B.mdot -> *;
+    Phi_A  : A.Phi  -> *;
+    Phi_B  : B.Phi  -> *;
+end
+
+intermediates (Access = private, ExternalAccess = none)
+    % Port pressure
+    p_A = A.p;
+    p_B = B.p;
+
+    % Use Becca's fcn for finding pressure differential
+    h_under_seafloor = h_seafloor + h_underground
+    P_vs_depth = zeros(1,h_under_seafloor);
+    P_vs_depth(1) = p_A;
+    rho_vs_depth = zeros(1,h_under_seafloor);
+    
+    for i=2:h_under_seafloor    % iterates to find pressure at bottom
+        v_i = tablelookup(A.unorm_TLU, A.p_TLU, A.v_TLU, unorm_in, p_in,...
+            interpolation = linear, extrapolation = linear);        % specific volume
+        ro_i = 1/v_i;   % density of CO2, kg/m^3
+        mu_i = tablelookup(A.unorm_TLU, A.p_TLU, A.nu_TLU, unorm_I, p_I, ...
+            interpolation = linear, extrapolation = nearest)/v_i;   % dynamic viscosity of CO2 [Pa s]
+
+        % note: delta_h_i=1 by convention
+        deltaP_hydro_i = g * rho_i; % Pa, iterative hydrostatic pressure
+
+        Q = mdot_A / rho_i; % volume flow rate
+        A = pi/4 * D^2;     % area
+        v = Q/A;            % velocity
+
+        if i < h_seafloor % pipe loss
+            f = 0.015; % turbulent friction factor, taken for roughness ~5e-4 at high Re on Moody chart.
+            deltaP_loss_i = 1/2 * rho_i * v^2 * f/D;
+        else % injection loss
+            fracking = true;
+            if fracking
+                P_fracking = 2e6 / 200; % hardcoded for now, corresponding to 2MPa over 200m
+                deltaP_loss_i = P_fracking;
+            else % linear Darcy loss based on rock permeability
+                deltaP_loss_i = mu_i * v / k;
+            end
+        end
+        deltaP_i = deltaP_hydro_i - deltaP_loss_i;
+
+        rho_vs_depth(i) = rho_i;
+        P_vs_depth(i) = P_vs_depth(i-1) + deltaP_i;
+    end
+    P_bottom = P_vs_depth(end);
+
+    rho_vs_depth(1) = rho_vs_depth(2);
+end
+
+equations
+    mdot_A + mdot_B == 0;
