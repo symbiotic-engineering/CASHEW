@@ -1,39 +1,22 @@
-piston_area = 0.26;     %   [m^2]   Area of Piston
-initialRead = readmatrix("../../data/CO2TempData.csv");
-[r,c] = size(initialRead);
-temp = initialRead(1,2:c); % degC
-pressure = initialRead(2:r,1); % MPa
-rho = initialRead(2:r,2:c); % kg/m^3
+% Initial Conditions
+P = 8;                  % [MPa] Intake CO2 Pressure
+T = 305;                % [K]   Temperature of CO2
 
-dP = [diff(pressure)]; 
-dP = [dP; dP(length(dP))]; % append final value
-dP = repmat(dP,1,c-1);
+% Environmental Parameters
+H_ocean = 2700;         % [m]   Depth of Ocean
+H_ground = 200;         % [m]   Distance Underground
+g = 9.8;                % [m/s^2]   Gravitational Acceleration
+rho_w = 1025;           % [kg/m^3]  Density of Seawater
+P_floor = rho_w*g*H;    % [Pa]  Pressure to overcome at ocean floor
+P_floor = P_floor*1e-6  % [MPa] Pressure to overcome at ocean floor
 
-dRho = [diff(rho)];
-dRho = [dRho ; dRho(length(dRho),:)]; % append final row
+% Piston Parameters
+v_amp = 1;              % [m/s] Velocity Amplitude
+piston_area = 0.26;     % [m^2] Area of Piston
+omega = 1;              % [rad/s]   Wave Frequency
 
-bulkModulus = rho .* (dP./dRho);
-bulkModulus = bulkModulus'; %  adjust for input to piston
-rho = rho'; % adjust for input to piston
-
-cp = ones(size(rho))*1.846; %%%%%%%%%% changed to eliminate issue
-
-dRhoP = diff(rho);
-dRhoP = [dRhoP; dRhoP(c-2,:)];
-for i=1:r-1
-    for j=1:c-1
-        if dRhoP(j,i) == 0
-            dRhoP(j,i) = -0.1;
-        end
-    end
-end
-
-dT = diff(temp);
-dT = [dT dT(length(dT))];
-dT = repmat(dT,r-1,1)';
-
-alpha = abs(-(1./rho) .* (dRhoP./dT));
-
-% tempMatrix = repmat(temp,1,length(rho))+273.15;
-% cv = cp - (tempMatrix .* bulkModulus .* (alpha).^2)./rho;
-
+% Pipe Parameters
+H = H_ocean + H_ground; % [m]   Total length of pipe
+d_pipe = 0.26;          % [m]   Dimater of pipe
+A_pipe = d_pipe^2*pi/4; % [m^2] Area of pipe
+N = 10;                 % []    Number of pipe segments
