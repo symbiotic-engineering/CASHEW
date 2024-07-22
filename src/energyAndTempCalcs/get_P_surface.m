@@ -1,18 +1,18 @@
 % example function call: get_P_surface(1,2700,2900,1000*9.8*2700,9.8,1,1e-17)
 
-function [P_surface_required,P_bottom, P_vs_depth, rho_vs_depth] = get_P_surface(mdot,h_seafloor,h_under_seafloor,P_bottom_required,g,D,k)
+function [P_surface_required,P_bottom, P_vs_depth, rho_vs_depth] = get_P_surface(mdot,h_seafloor,h_under_seafloor,P_bottom_required,g,D,k,N)
 
     % iterate until P_surface solves the nonlinear equation
     P_surface_guess = 8e6; % 8 MPa
-    P_bottom_error_fcn = @(P_surface_guess) (pressure_vs_depth_fcn(mdot,P_surface_guess,h_seafloor,h_under_seafloor,g,D,k) - P_bottom_required);
+    P_bottom_error_fcn = @(P_surface_guess) (pressure_vs_depth_fcn(mdot,P_surface_guess,h_seafloor,h_under_seafloor,g,D,k,N) - P_bottom_required);
     P_surface_required = fzero(P_bottom_error_fcn, P_surface_guess);
 
     % rerun result with converged P_surface to get depth profile
-    [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface_required,h_seafloor,h_under_seafloor,g,D,k);
+    [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface_required,h_seafloor,h_under_seafloor,g,D,k,N);
 
 end
 
-function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface,h_seafloor,h_under_seafloor,g,D,k)
+function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface,h_seafloor,h_under_seafloor,g,D,k,N)
     rhoCO2ref = [0 10 30 50 85 110 145 235 500 620 700 790 860 905 935]; % kg/m^3
     pCO2ref   = [0 1  2  3  4  5   6   7   8   9   10  15  20  25  30 ]*1e6; % Pa
     % this data assumes temperature of approx 35 degree C
