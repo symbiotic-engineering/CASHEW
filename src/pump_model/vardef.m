@@ -19,4 +19,4 @@ omega = 1;              % [rad/s]   Wave Frequency
 H = H_ocean + H_ground; % [m]   Total length of pipe
 d_pipe = 0.26;          % [m]   Dimater of pipe
 A_pipe = d_pipe^2*pi/4; % [m^2] Area of pipe
-N = 10;                 % [-]   Number of pipe segments
+N = 40;                 % [-]   Number of pipe segments
