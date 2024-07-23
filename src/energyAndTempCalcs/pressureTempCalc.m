@@ -6,6 +6,7 @@ clear
 depth = 2700;
 distance_below_seafloor = 200;
 h_under_seafloor = depth + distance_below_seafloor;
+N = 1000; % number of depth steps
 
 % environmental constants
 g = 9.81; % m/s^2
@@ -17,7 +18,6 @@ k = k_darcy * 1e-12; % seabed permeability, m^2
 h_out    = 50; % convective heat transfer coefficient from pipe to ocean - some constant (for now) [W/(m^2 C)]
 h_in     = 50;   % convective heat transfer coefficient from CO2 to pipe [W/(m^2 C)]
 T_oc     = 17;    % temperature of ocean - some constant (for now) [C]
-deltaZ   = 1;     % distance step [m]
 k_pipe   = 45;    % thermal conductivity steel [W/(m C)]
 k_insu   = 0.015; % thermal conductivity insulation [W/(m C)] - from https://www.aerogel.com/wp-content/uploads/2021/08/Spaceloft-Subsea-Datasheet.pdf
 rho_pipe = 7900;  % density steel [kg/m^3]
@@ -40,16 +40,22 @@ outer_radius_insu = outer_radius_pipe + thickness_insulation;
 
 %% calculate water density at depth
 % density calculations
-depthShallow = 0:1001; % m
-rhoShallow = 3*10^(-6) * depthShallow + 1025; % kg/m^3
-rhoDeep = ones(1, h_under_seafloor-1000)*1028; % kg/m^3
-rhoWater = [rhoShallow, rhoDeep];
+deltaZ = h_under_seafloor / N;
+z = linspace(0,h_under_seafloor,N);
+
+% water density change with depth
+water_shallow_threshold = 1000; % m
+depth_shallow = z(z <= water_shallow_threshold); % m
+rho_shallow = 3*10^(-6) * depth_shallow + 1025; % kg/m^3
+depth_deep = z(z > water_shallow_threshold); % m
+rho_deep = ones(size(depth_deep)) * 1028; % kg/m^3
+rho_water = [rho_shallow, rho_deep];
 
 %% calculate water pressure at depth
-P_water = zeros(1,h_under_seafloor+1);
+P_water = zeros(1,N);
 P_water(1) = P_atm; % Pa
-for i=1:h_under_seafloor
-    P_water(i+1) = P_water(i) + rhoWater(i) * g; % by convention deltaH=1;
+for i=1:N-1
+    P_water(i+1) = P_water(i) + rho_water(i) * g * deltaZ; % by convention deltaH=1;
 end
 
 %% calculate CO2 density at depth for different massflows
@@ -63,7 +69,7 @@ P_bottom_required = P_water(end);
 P_surface_required = zeros(size(mdot));
 for i=1:length(mdot)
     [P_surface_required(i),P_bottom,...
-        P_vs_depth, rho_vs_depth] = get_P_surface(mdot(i),depth,h_under_seafloor,P_bottom_required,g,D,k);
+        P_vs_depth, rho_vs_depth] = get_P_surface(mdot(i),depth,h_under_seafloor,P_bottom_required,g,D,k,N);
 end
 
 figure
@@ -78,7 +84,7 @@ improvePlot
 %% calculate allowable pressure in a pipe
 % contsraint: no pipe explosion
 % constraint: no pipe implosion
-pDifferential = P_water(2:end) - P_vs_depth;
+pDifferential = P_water - P_vs_depth;
 pDiffMax = max(pDifferential);
 pDiffMin = min(pDifferential);
 % t =;
@@ -98,14 +104,14 @@ pDiffMin = min(pDifferential);
                     outer_radius_pipe,inner_radius_pipe,outer_radius_insu,...
                     thickness_pipe,thickness_insulation,T_supercritical,T_oc,...
                     k_pipe,k_insu,h_in,h_out,P_heat,rho_pipe,c_CO2,c_pipe,...
-                    h_under_seafloor,deltaZ,g);
+                    h_under_seafloor,deltaZ,g,N);
 
 %% Plot temperature and pressure of CO2 as a function of depth
 figure
 %Pressure
-x = 1:h_under_seafloor;
+x = z;
 y1 = P_vs_depth*1e6; 
-y2 = T_CO2(2:end);
+y2 = T_CO2;
 
 yyaxis left
 plot(x,y1,'LineWidth', 1.5, 'Color','#0072BD','LineStyle',"-");
@@ -125,7 +131,7 @@ plot([0,depth],[pInjection,pInjection] ,'LineWidth',1.5, 'Color', '#77AC30', 'Li
 
 % constraint: maintain supercritical fluid
 plot( [0, depth], [P_supercritical, P_supercritical]/1e6,'LineWidth',1.5, 'Color', '#77AC30','LineStyle',"-")
-plot(x,P_water(2:end)/1e6,'LineWidth',1.5, 'Color','#EDB120', 'LineStyle',"-")
+plot(x,P_water/1e6,'LineWidth',1.5, 'Color','#EDB120', 'LineStyle',"-")
 
 legend('CO2 Pressure Chart','Injection MINIMUM Requirment', ...
     'Supercritical MINIMUM Requirement','Water Pressure')
@@ -133,7 +139,7 @@ legend('CO2 Pressure Chart','Injection MINIMUM Requirment', ...
 %% Plot all temperatures as a function of depth
 
 figure
-plot(x, T_CO2(2:end), x, T_s_in(2:end), '--', x, T_s_out(2:end), '-.', x, T_insu(2:end),'LineWidth',1.5)
+plot(x, T_CO2, x, T_s_in, '--', x, T_s_out, '-.', x, T_insu,'LineWidth',1.5)
 legend('CO2','Steel pipe inside','Steel pipe outside','Insulation outside')
 xlabel('Depth (m)')
 ylabel('Temperature (C)')

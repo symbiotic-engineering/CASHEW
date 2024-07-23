@@ -2,7 +2,7 @@ function [T_CO2, T_s_in, T_s_out, T_insu] = temp_model(P_vs_depth,rho_vs_depth,.
                     outer_radius_pipe,inner_radius_pipe,outer_radius_insu,...
                     thickness_pipe,thickness_insulation,T_supercritical,T_oc,...
                     k_pipe,k_insu,h_in,h_out,P_heat,rho_pipe,c_CO2,c_pipe,...
-                    h_under_seafloor,deltaZ,g)
+                    h_under_seafloor,deltaZ,g,N)
 
 deltaP = [0 diff(P_vs_depth)];
 rho_CO2 = rho_vs_depth;
@@ -28,12 +28,12 @@ total_thermal_resistance = therm_resistance_cond_pipe + therm_resistance_cond_in
 
 %% Temperature Calculation
 % create empty lists to populate
-T_CO2   = zeros(1,h_under_seafloor+1); % temperature of CO2
+T_CO2   = zeros(1,N); % temperature of CO2
 
 %initialize TCO2 at the surface of the ocean
 T_CO2(1) = T_supercritical;
 
-for i = 1:h_under_seafloor
+for i = 1:N-1
     heat_xfer_from_CO2_to_ocean = 1/total_thermal_resistance * (T_CO2(i) - T_oc);
     net_heat_xfer_into_CO2  = -heat_xfer_from_CO2_to_ocean + g * deltaZ + deltaP(i) / rho_CO2(i) + P_heat;
 

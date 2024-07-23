@@ -1,4 +1,4 @@
-% example function call: get_P_surface(1,2700,2900,1000*9.8*2700,9.8,1,1e-17)
+% example function call: get_P_surface(1,2700,2900,1000*9.8*2900,9.8,1,1e-17,100)
 
 function [P_surface_required,P_bottom, P_vs_depth, rho_vs_depth] = get_P_surface(mdot,h_seafloor,h_under_seafloor,P_bottom_required,g,D,k,N)
 
@@ -17,17 +17,18 @@ function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_sur
     pCO2ref   = [0 1  2  3  4  5   6   7   8   9   10  15  20  25  30 ]*1e6; % Pa
     % this data assumes temperature of approx 35 degree C
 
-    P_vs_depth = zeros(1,h_under_seafloor);
+    delta_h = h_under_seafloor / N;
+
+    P_vs_depth = zeros(1,N);
     P_vs_depth(1) = P_surface;
-    rho_vs_depth = zeros(1,h_under_seafloor);
+    rho_vs_depth = zeros(1,N);
     
     %% iteration to calculate CO2 pressure at depth
-    for i=2:h_under_seafloor
+    for i=2:N
         rho_i = interp1(pCO2ref, rhoCO2ref, P_vs_depth(i-1),'linear','extrap'); % density of CO2, kg/m^3
         mu_i = 3e-6; % dynamic viscosity of CO2 [Pa s]
 
-        % note: delta_h_i=1 by convention
-        deltaP_hydro_i = g * rho_i; % Pa, iterative hydrostatic pressure
+        deltaP_hydro_i = g * rho_i * delta_h; % Pa, iterative hydrostatic pressure
 
         Q = mdot / rho_i; % volume flow rate
         A = pi/4 * D^2;   % area
@@ -35,14 +36,18 @@ function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_sur
 
         if i < h_seafloor % pipe loss
             f = 0.015; % turbulent friction factor, taken for roughness ~5e-4 at high Re on Moody chart.
-            deltaP_loss_i = 1/2 * rho_i * v^2 * f/D;
+            deltaP_loss_i = 1/2 * rho_i * v^2 * f * delta_h/D;
         else % injection loss
             fracking = true;
             if fracking
-                P_fracking = 2e6 / 200; % hardcoded for now, corresponding to 2MPa over 200m
+                P_fracking = 2e6 / 200 * delta_h; % hardcoded for now, corresponding to 2MPa over 200m
                 deltaP_loss_i = P_fracking;
             else % linear Darcy loss based on rock permeability
-                deltaP_loss_i = mu_i * v / k;
+                % this is not actually correct because it assumes the
+                % velocity is the same as the pipe velocity, but actually
+                % the velocity will be based on the rock pore volume etc,
+                % and the length will be too, and therefore the bottom pore pressure required.
+                deltaP_loss_i = mu_i * v / k * delta_h;
             end
         end
         deltaP_i = deltaP_hydro_i - deltaP_loss_i;
