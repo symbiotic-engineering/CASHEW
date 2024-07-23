@@ -4,8 +4,6 @@ clear
 %% parameters
 % depth
 depth = 2700;
-distance_below_seafloor = 200;
-h_under_seafloor = depth + distance_below_seafloor;
 N = 1000; % number of depth steps
 
 % environmental constants
@@ -38,48 +36,39 @@ inner_radius_pipe = outer_radius_pipe - thickness_pipe;
 outer_radius_insu = outer_radius_pipe + thickness_insulation;
 
 
-%% calculate water density at depth
-% density calculations
-deltaZ = h_under_seafloor / N;
-z = linspace(0,h_under_seafloor,N);
+%% calculate CO2 surface pressure required for different massflows and different injection depths
 
-% water density change with depth
-water_shallow_threshold = 1000; % m
-depth_shallow = z(z <= water_shallow_threshold); % m
-rho_shallow = 3*10^(-6) * depth_shallow + 1025; % kg/m^3
-depth_deep = z(z > water_shallow_threshold); % m
-rho_deep = ones(size(depth_deep)) * 1028; % kg/m^3
-rho_water = [rho_shallow, rho_deep];
-
-%% calculate water pressure at depth
-P_water = zeros(1,N);
-P_water(1) = P_atm; % Pa
-for i=1:N-1
-    P_water(i+1) = P_water(i) + rho_water(i) * g * deltaZ; % by convention deltaH=1;
-end
-
-%% calculate CO2 density at depth for different massflows
-
-mdot_Mt_yr = [1 20:20:180]; % massflow of CO2 in megatons/yr
+mdot_Mt_yr = [1 20:20:160]; % massflow of CO2 in megatons/yr
 sec_per_yr = 365.25 * 24 * 60 * 60;
 mdot = mdot_Mt_yr * 1e9 / sec_per_yr; % convert from megatons/yr to kg/s
-D = 2*inner_radius_pipe;
 
-P_bottom_required = P_water(end);
-P_surface_required = zeros(size(mdot));
-for i=1:length(mdot)
-    [P_surface_required(i),P_bottom,...
-        P_vs_depth, rho_vs_depth] = get_P_surface(mdot(i),depth,h_under_seafloor,P_bottom_required,g,D,k,N);
+injection_depths = 100 : 100 : 500;
+
+P_surface_required = zeros(length(mdot),length(injection_depths));
+for i = 1:length(mdot)
+    for j = 1:length(injection_depths)
+        P_surface_required(i,j) = pressures(depth, P_atm, g, mdot(i), inner_radius_pipe, injection_depths(j), k, N);
+    end
 end
 
 figure
 plot(mdot_Mt_yr,P_surface_required/1e6)
 hold on
-plot([0 max(mdot_Mt_yr)],P_supercritical*[1 1]/1e6)
+plot([0 max(mdot_Mt_yr)],P_supercritical*[1 1]/1e6,'k--')
 xlabel('Desired Massflow of CO2 (Mt/yr)')
 ylabel('Required Pressure at Surface (MPa)')
-legend('Calculation from density and loss','Supercritical requirement')
 improvePlot
+legend_numbers = cellstr(num2str(injection_depths'));
+legend_text = [legend_numbers;'Supercritical'];
+leg = legend(legend_text);
+title(leg,'Injection Depth (m)')
+
+%% single massflow and injection depth to use for rest of analysis
+mdot_main = mdot(2);
+injection_depth_main = 200;
+[P_surface_required,P_bottom,...
+ P_vs_depth, rho_vs_depth,P_water,...
+ h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot_main, inner_radius_pipe, injection_depth_main, k, N);
 
 %% calculate allowable pressure in a pipe
 % contsraint: no pipe explosion
@@ -144,3 +133,36 @@ legend('CO2','Steel pipe inside','Steel pipe outside','Insulation outside')
 xlabel('Depth (m)')
 ylabel('Temperature (C)')
 
+function [P_surface_required,P_bottom,...
+        P_vs_depth, rho_vs_depth,P_water,...
+        h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot, inner_radius_pipe, distance_below_seafloor, k, N)
+
+    h_under_seafloor = depth + distance_below_seafloor;
+    deltaZ = h_under_seafloor / N;
+    z = linspace(0,h_under_seafloor,N);
+
+    % water density change with depth
+    water_shallow_threshold = 1000; % m
+    depth_shallow = z(z <= water_shallow_threshold); % m
+    rho_shallow = 3*10^(-6) * depth_shallow + 1025; % kg/m^3
+    depth_deep = z(z > water_shallow_threshold); % m
+    rho_deep = ones(size(depth_deep)) * 1028; % kg/m^3
+    rho_water = [rho_shallow, rho_deep];
+    
+    %% calculate water pressure at depth
+    P_water = zeros(1,N);
+    P_water(1) = P_atm; % Pa
+    for i=1:N-1
+        P_water(i+1) = P_water(i) + rho_water(i) * g * deltaZ; % by convention deltaH=1;
+    end
+
+    D = 2*inner_radius_pipe;
+    
+    pore_multiplier = 1; % factor of 1 to 1.8 https://petrowiki.spe.org/Methods_to_determine_pore_pressure
+    P_pore_bottom = pore_multiplier * P_water(end);
+    P_frack = 1e6 * 0.35 * (distance_below_seafloor/100)^1.5; % rough fit of Fig 3 https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2007GL031560
+    P_bottom_required = P_pore_bottom + P_frack;
+
+    [P_surface_required,P_bottom,...
+        P_vs_depth, rho_vs_depth] = get_P_surface(mdot,depth,h_under_seafloor,P_bottom_required,g,D,k,N);
+end

@@ -34,22 +34,16 @@ function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_sur
         A = pi/4 * D^2;   % area
         v = Q/A;          % velocity
 
-        if i < h_seafloor % pipe loss
-            f = 0.015; % turbulent friction factor, taken for roughness ~5e-4 at high Re on Moody chart.
-            deltaP_loss_i = 1/2 * rho_i * v^2 * f * delta_h/D;
-        else % injection loss
-            fracking = true;
-            if fracking
-                P_fracking = 2e6 / 200 * delta_h; % hardcoded for now, corresponding to 2MPa over 200m
-                deltaP_loss_i = P_fracking;
-            else % linear Darcy loss based on rock permeability
-                % this is not actually correct because it assumes the
-                % velocity is the same as the pipe velocity, but actually
-                % the velocity will be based on the rock pore volume etc,
-                % and the length will be too, and therefore the bottom pore pressure required.
-                deltaP_loss_i = mu_i * v / k * delta_h;
-            end
-        end
+        f = 0.015; % turbulent friction factor, taken for roughness ~5e-4 at high Re on Moody chart.
+        deltaP_loss_i = 1/2 * rho_i * v^2 * f * delta_h/D;
+
+        % linear Darcy loss based on rock permeability
+        % this is not actually correct because it assumes the
+        % velocity is the same as the pipe velocity, but actually
+        % the velocity will be based on the rock pore volume etc,
+        % and the length will be too, and therefore the bottom pore pressure required.
+        % deltaP_loss_i = mu_i * v / k * delta_h;
+
         deltaP_i = deltaP_hydro_i - deltaP_loss_i;
 
         rho_vs_depth(i) = rho_i;
