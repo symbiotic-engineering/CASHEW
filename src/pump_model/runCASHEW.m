@@ -2,7 +2,7 @@ clear;clc;close all;
 
 % Initial Conditions
 P = 8;                  % [MPa] Intake CO2 Pressure
-T = 305;                % [K]   Temperature of CO2
+T = 273.15;                % [K]   Temperature of CO2
 
 % Environmental Parameters
 H_ocean = 2700;         % [m]   Depth of Ocean
@@ -18,7 +18,7 @@ P_floor = P_ocean*1e-6 + P_frac;    % [MPa] Total pressure to frac
 xi = 1;                 % [m]   WEC Amplitude
 omega = 0.7;            % [rad/s]   Wave Frequency
 v_amp = xi*omega;       % [m/s] Velocity Amplitude
-piston_area = 0.42;     % [m^2] Area of Piston
+piston_area = 0.41;     % [m^2] Area of Piston
 
 % Pipe Parameters
 H = H_ocean + H_ground; % [m]   Total length of pipe
