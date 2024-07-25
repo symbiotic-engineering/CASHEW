@@ -14,7 +14,7 @@ d_pipe = 0.26;          % [m]   Dimater of pipe
 A_pipe = d_pipe^2*pi/4; % [m^2] Area of pipe
 N = [40,2700];            % [-]   Number of pipe segments
 
-mdot = 31710/2700;
+mdot = 300;
 P_top = zeros(size(N));
 
 for ii = 1:length(N)
@@ -32,8 +32,8 @@ function P = get_P_top(P,H,N,g,D,mdot)
 end
 
 function P_above = get_P_above(P,dH,g,D,mdot)
-    rhoCO2ref = [0 10 30 50 85 110 145 235 500 620 700 790 860 905 935]; % kg/m^3
-    pCO2ref   = [0 1  2  3  4  5   6   7   8   9   10  15  20  25  30 ]; % MPa
+    pCO2ref = [3.952702582,5.000000552,6.013513969,6.993242831,8.006756248,9.020269664,9.999999816,19.99999834,29.99999945];
+    rhoCO2ref = [933.1932527,943.6974547,950.0000401,958.4033536,962.6050504,968.9075556,977.3109493,1021.428566,1055.04202];
     rho = interp1(pCO2ref, rhoCO2ref, P,'linear','extrap'); % density of CO2, kg/m^3
 
     Q = mdot / rho; % volume flow rate
