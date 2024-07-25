@@ -13,9 +13,30 @@ function [P_surface_required,P_bottom, P_vs_depth, rho_vs_depth] = get_P_surface
 end
 
 function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface,h_seafloor,h_under_seafloor,g,D,k,N)
-    rhoCO2ref = [0 10 30 50 85 110 145 235 500 620 700 790 860 905 935]; % kg/m^3
-    pCO2ref   = [0 1  2  3  4  5   6   7   8   9   10  15  20  25  30 ]*1e6; % Pa
+    %rhoCO2ref = [0 10 30 50 85 110 145 235 500 620 700 790 860 905 935]; % kg/m^3
+    %pCO2ref   = [0 1  2  3  4  5   6   7   8   9   10  15  20  25  30 ]*1e6; % Pa
     % this data assumes temperature of approx 35 degree C
+
+    pCO2ref = [3.952702582
+    5.000000552
+    6.013513969
+    6.993242831
+    8.006756248
+    9.020269664
+    9.999999816
+    19.99999834
+    29.99999945]*1e6;
+    
+    rhoCO2ref = [933.1932527
+    943.6974547
+    950.0000401
+    958.4033536
+    962.6050504
+    968.9075556
+    977.3109493
+    1021.428566
+    1055.04202];
+    % this data is for 0 degrees C
 
     delta_h = h_under_seafloor / N;
 

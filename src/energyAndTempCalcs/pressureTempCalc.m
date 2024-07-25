@@ -20,12 +20,16 @@ k_pipe   = 45;    % thermal conductivity steel [W/(m C)]
 k_insu   = 0.015; % thermal conductivity insulation [W/(m C)] - from https://www.aerogel.com/wp-content/uploads/2021/08/Spaceloft-Subsea-Datasheet.pdf
 rho_pipe = 7900;  % density steel [kg/m^3]
 c_pipe   = 500;   % specific heat steel [J / (kg C)]
-P_heat   = 45;    % heating of CO2 [W]
+P_heat   = 0; %45;    % heating of CO2 [W]
 
 % supercritical CO2
 T_supercritical = 31;    % minimum temperature of CO2 to maintain supercritical state [C]
 c_CO2           = 0.709; % specific heat of CO2 - some constant (for now) [J / (kg C)]
 P_supercritical = 7.37 * 1e6; % [Pa] requirement
+
+% liquid CO2
+T_liquid = 0; % [C] 
+c_CO2 = 2470; % https://www.engineeringtoolbox.com/carbon-dioxide-d_1000.html
 
 % pipe dimensions
 outer_radius_pipe = 0.5;  % [m]
@@ -91,7 +95,7 @@ pDiffMin = min(pDifferential);
 %% calculate CO2 and pipe temperature at depth
 [T_CO2, T_s_in, T_s_out, T_insu] = temp_model(P_vs_depth,rho_vs_depth,...
                     outer_radius_pipe,inner_radius_pipe,outer_radius_insu,...
-                    thickness_pipe,thickness_insulation,T_supercritical,T_oc,...
+                    thickness_pipe,thickness_insulation,T_liquid,T_oc,...
                     k_pipe,k_insu,h_in,h_out,P_heat,rho_pipe,c_CO2,c_pipe,...
                     h_under_seafloor,deltaZ,g,N);
 
