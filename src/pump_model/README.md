@@ -1,0 +1,1 @@
+To run the simscape model, simply adjust parameters as desired in the runCASHEW.m file and then run the m-file. Results used in the power at sea CONCEPT phase are preloaded. To plot results, simply run the plot_results.m file after running the runCASHEW.m file.

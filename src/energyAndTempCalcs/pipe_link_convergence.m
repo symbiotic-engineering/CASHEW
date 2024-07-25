@@ -1,31 +1,23 @@
 clear;clc;close all;
-% Initial Conditions
-P = 8;                  % [MPa] Intake CO2 Pressure
-T = 305;                % [K]   Temperature of CO2
-
 % Environmental Parameters
 H_ocean = 2700;         % [m]   Depth of Ocean
 H_ground = 200;         % [m]   Distance Underground
 g = 9.8;                % [m/s^2]   Gravitational Acceleration
 rho_w = 1025;           % [kg/m^3]  Density of Seawater
-P_floor = rho_w*g*H_ocean;  % [Pa]  Pressure to overcome at ocean floor
-P_floor = P_floor*1e-6  % [MPa] Pressure to overcome at ocean floor
-
-% Piston Parameters
-v_amp = 1;              % [m/s] Velocity Amplitude
-piston_area = 0.26;     % [m^2] Area of Piston
-omega = 1;              % [rad/s]   Wave Frequency
+P_ocean = rho_w*g*H_ocean;  % [Pa]  Pressure at the ocean floor
+P_frac = 2;             % [MPa] Pressure required to break rocks
+P_floor = P_ocean*1e-6 + P_frac;    % [MPa] Total pressure to frac
 
 % Pipe Parameters
 H = H_ocean + H_ground; % [m]   Total length of pipe
 d_pipe = 0.26;          % [m]   Dimater of pipe
 A_pipe = d_pipe^2*pi/4; % [m^2] Area of pipe
-N = 1:200;            % [-]   Number of pipe segments
+N = [40,2700];            % [-]   Number of pipe segments
 
 mdot = 31710/2700;
 P_top = zeros(size(N));
 
-for ii = N
+for ii = 1:length(N)
     disp(ii)
     P_top(ii) = get_P_top(P_floor,H,N(ii),g,d_pipe,mdot);
 end
