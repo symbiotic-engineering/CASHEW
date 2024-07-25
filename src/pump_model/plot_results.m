@@ -29,3 +29,4 @@ ylabel('Force on WEC [MN]')
 figfix('Print1',7);
 pos = get(gca, 'Position');
 set(gca, 'Position', [pos(1) pos(2)+0.02 pos(3) pos(4)]);
+
