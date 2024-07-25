@@ -22,13 +22,18 @@ k_pipe   = 45;    % thermal conductivity steel [W/(m C)]
 k_insu   = 0.015; % thermal conductivity insulation [W/(m C)] - from https://www.aerogel.com/wp-content/uploads/2021/08/Spaceloft-Subsea-Datasheet.pdf
 rho_pipe = 7900;  % density steel [kg/m^3]
 c_pipe   = 500;   % specific heat steel [J / (kg C)]
-P_heat   = 0; %45;    % heating of CO2 [W]
+if supercritical
+    P_heat   = 150;    % heating of CO2 [W] - guess and check until temp graph exceeds supercritical requirement
+else
+    P_heat = 0;
+end
 
 % CO2 properties
 P_supercritical = 7.38 * 1e6; % [Pa] requirement
+T_supercritical = 31; % minimum temperature of CO2 to maintain supercritical state [C]
 if supercritical
-    T_CO2_surface = 31;    % minimum temperature of CO2 to maintain supercritical state [C]
-    c_CO2           = 0.709; % specific heat of CO2 - some constant (for now) [J / (kg C)]
+    T_CO2_surface = T_supercritical;    
+    c_CO2         = 0.709; % specific heat of CO2 - some constant (for now) [J / (kg C)]
 else
     % liquid CO2
     T_CO2_surface = 0; % [C] 
@@ -136,18 +141,30 @@ improvePlot
 
 % temperature
 figure
-plot(z,T_CO2, 'LineWidth', 1.5)
+plot(z,T_CO2, 'LineWidth', 1.5,'DisplayName','CO2 Temperature')
+if supercritical
+    hold on
+    plot([0 max(z)],T_supercritical*[1 1],'DisplayName','Supercritical');
+end
 ylabel('Temperature (C)')
 xlabel('Depth (m)')
+legend
 improvePlot
 
 %% Plot all temperatures as a function of depth
 
 figure
 plot(z, T_CO2, z, T_s_in, '--', z, T_s_out, '-.', z, T_insu,'LineWidth',1.5)
-legend('CO2','Steel pipe inside','Steel pipe outside','Insulation outside')
+legend_text = {'CO2','Steel pipe inside','Steel pipe outside','Insulation outside'};
+if supercritical
+    hold on
+    plot([0 max(z)],T_supercritical*[1 1],'k--')
+    legend_text = [legend_text,'Supercritical'];
+end
+legend(legend_text)
 xlabel('Depth (m)')
 ylabel('Temperature (C)')
+improvePlot
 
 function [P_surface_required,P_bottom,...
         P_vs_depth, rho_vs_depth,P_water,rho_water,...
