@@ -1,43 +1,47 @@
 % example function call: get_P_surface(1,2700,2900,1000*9.8*2900,9.8,1,1e-17,100)
 
-function [P_surface_required,P_bottom, P_vs_depth, rho_vs_depth] = get_P_surface(mdot,h_seafloor,h_under_seafloor,P_bottom_required,g,D,k,N)
+function [P_surface_required,P_bottom,...
+          P_vs_depth, rho_vs_depth] = get_P_surface(mdot,h_seafloor,h_under_seafloor,...
+                                                    P_bottom_required,g,D,k,N,sc)
 
     % iterate until P_surface solves the nonlinear equation
     P_surface_guess = 8e6; % 8 MPa
-    P_bottom_error_fcn = @(P_surface_guess) (pressure_vs_depth_fcn(mdot,P_surface_guess,h_seafloor,h_under_seafloor,g,D,k,N) - P_bottom_required);
+    P_bottom_error_fcn = @(P_surface_guess) (pressure_vs_depth_fcn(mdot,P_surface_guess,h_seafloor,h_under_seafloor,g,D,k,N,sc) - P_bottom_required);
     P_surface_required = fzero(P_bottom_error_fcn, P_surface_guess);
 
     % rerun result with converged P_surface to get depth profile
-    [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface_required,h_seafloor,h_under_seafloor,g,D,k,N);
+    [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface_required,h_seafloor,h_under_seafloor,g,D,k,N,sc);
 
 end
 
-function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface,h_seafloor,h_under_seafloor,g,D,k,N)
-    %rhoCO2ref = [0 10 30 50 85 110 145 235 500 620 700 790 860 905 935]; % kg/m^3
-    %pCO2ref   = [0 1  2  3  4  5   6   7   8   9   10  15  20  25  30 ]*1e6; % Pa
-    % this data assumes temperature of approx 35 degree C
+function [P_bottom, P_vs_depth, rho_vs_depth] = pressure_vs_depth_fcn(mdot,P_surface,h_seafloor,h_under_seafloor,g,D,k,N,supercritical)
 
-    pCO2ref = [3.952702582
-    5.000000552
-    6.013513969
-    6.993242831
-    8.006756248
-    9.020269664
-    9.999999816
-    19.99999834
-    29.99999945]*1e6;
-    
-    rhoCO2ref = [933.1932527
-    943.6974547
-    950.0000401
-    958.4033536
-    962.6050504
-    968.9075556
-    977.3109493
-    1021.428566
-    1055.04202];
-    % this data is for 0 degrees C
-
+    if supercritical
+        rhoCO2ref = [0 10 30 50 85 110 145 235 500 620 700 790 860 905 935]; % kg/m^3
+        pCO2ref   = [0 1  2  3  4  5   6   7   8   9   10  15  20  25  30 ]*1e6; % Pa
+        % this data assumes temperature of approx 35 degree C
+    else
+        pCO2ref = [3.952702582
+        5.000000552
+        6.013513969
+        6.993242831
+        8.006756248
+        9.020269664
+        9.999999816
+        19.99999834
+        29.99999945]*1e6;
+        
+        rhoCO2ref = [933.1932527
+        943.6974547
+        950.0000401
+        958.4033536
+        962.6050504
+        968.9075556
+        977.3109493
+        1021.428566
+        1055.04202];
+        % this data is for 0 degrees C
+    end
     delta_h = h_under_seafloor / N;
 
     P_vs_depth = zeros(1,N);

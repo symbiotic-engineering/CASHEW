@@ -1,6 +1,8 @@
 close all
 clear
 
+supercritical = false; % flag for supercritical or liquid CO2
+
 %% parameters
 % depth
 depth = 2700;
@@ -22,14 +24,16 @@ rho_pipe = 7900;  % density steel [kg/m^3]
 c_pipe   = 500;   % specific heat steel [J / (kg C)]
 P_heat   = 0; %45;    % heating of CO2 [W]
 
-% supercritical CO2
-T_supercritical = 31;    % minimum temperature of CO2 to maintain supercritical state [C]
-c_CO2           = 0.709; % specific heat of CO2 - some constant (for now) [J / (kg C)]
-P_supercritical = 7.37 * 1e6; % [Pa] requirement
-
-% liquid CO2
-T_liquid = 0; % [C] 
-c_CO2 = 2470; % https://www.engineeringtoolbox.com/carbon-dioxide-d_1000.html
+% CO2 properties
+P_supercritical = 7.38 * 1e6; % [Pa] requirement
+if supercritical
+    T_CO2_surface = 31;    % minimum temperature of CO2 to maintain supercritical state [C]
+    c_CO2           = 0.709; % specific heat of CO2 - some constant (for now) [J / (kg C)]
+else
+    % liquid CO2
+    T_CO2_surface = 0; % [C] 
+    c_CO2 = 2470; % https://www.engineeringtoolbox.com/carbon-dioxide-d_1000.html
+end
 
 % pipe dimensions
 outer_radius_pipe = 0.5;  % [m]
@@ -51,19 +55,21 @@ injection_depths = 100 : 100 : 500;
 P_surface_required = zeros(length(mdot),length(injection_depths));
 for i = 1:length(mdot)
     for j = 1:length(injection_depths)
-        P_surface_required(i,j) = pressures(depth, P_atm, g, mdot(i), inner_radius_pipe, injection_depths(j), k, N);
+        P_surface_required(i,j) = pressures(depth, P_atm, g, mdot(i), inner_radius_pipe, injection_depths(j), k, N, supercritical);
     end
 end
 
 figure
 plot(mdot_Mt_yr,P_surface_required/1e6)
 hold on
-plot([0 max(mdot_Mt_yr)],P_supercritical*[1 1]/1e6,'k--')
+legend_text = cellstr(num2str(injection_depths'));
+if supercritical
+    plot([0 max(mdot_Mt_yr)],P_supercritical*[1 1]/1e6,'k--')
+    legend_text = [legend_text;'Supercritical'];
+end
 xlabel('Desired Massflow of CO2 (Mt/yr)')
 ylabel('Required Pressure at Surface (MPa)')
 improvePlot
-legend_numbers = cellstr(num2str(injection_depths'));
-legend_text = [legend_numbers;'Supercritical'];
 leg = legend(legend_text);
 title(leg,'Injection Depth (m)')
 
@@ -72,7 +78,7 @@ mdot_main = mdot(2);
 injection_depth_main = 200;
 [P_surface_required,P_bottom,...
  P_vs_depth, rho_vs_depth,P_water,rho_water,...
- h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot_main, inner_radius_pipe, injection_depth_main, k, N);
+ h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot_main, inner_radius_pipe, injection_depth_main, k, N, supercritical);
 
 %% calculate allowable pressure in a pipe
 % contsraint: no pipe explosion
@@ -95,23 +101,25 @@ pDiffMin = min(pDifferential);
 %% calculate CO2 and pipe temperature at depth
 [T_CO2, T_s_in, T_s_out, T_insu] = temp_model(P_vs_depth,rho_vs_depth,...
                     outer_radius_pipe,inner_radius_pipe,outer_radius_insu,...
-                    thickness_pipe,thickness_insulation,T_liquid,T_oc,...
+                    thickness_pipe,thickness_insulation,T_CO2_surface,T_oc,...
                     k_pipe,k_insu,h_in,h_out,P_heat,rho_pipe,c_CO2,c_pipe,...
                     h_under_seafloor,deltaZ,g,N);
 
 %% Plot temperature and pressure and density of CO2 as a function of depth
 %Pressure
 figure
-plot(z,P_vs_depth/1e6,'LineWidth', 1.5);
+plot(z,P_vs_depth/1e6,'LineWidth', 1.5,'DisplayName','CO2 Pressure');
 hold on
-% constraint: maintain supercritical fluid
-plot( [0, depth], [P_supercritical, P_supercritical]/1e6,'--k','LineWidth',1.5)
-plot(z,P_water/1e6,'LineWidth',1.5)
+if supercritical
+    % constraint: maintain supercritical fluid
+    plot([0, depth], [P_supercritical, P_supercritical]/1e6,'--k','LineWidth',1.5,'DisplayName','Supercritical Minimum Requirement')
+end
+plot(z,P_water/1e6,'LineWidth',1.5,'DisplayName','Water Pressure')
 
 title('Pressure as a Function of Depth')
 ylabel('Pressure (MPa)')
 xlabel('Depth (m)')
-legend('CO2 Pressure','Supercritical Minimum Requirement','Water Pressure')
+legend
 improvePlot
 
 % density
@@ -143,7 +151,8 @@ ylabel('Temperature (C)')
 
 function [P_surface_required,P_bottom,...
         P_vs_depth, rho_vs_depth,P_water,rho_water,...
-        h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot, inner_radius_pipe, distance_below_seafloor, k, N)
+        h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot, inner_radius_pipe, ...
+                                                distance_below_seafloor, k, N, supercritical)
 
     h_under_seafloor = depth + distance_below_seafloor;
     deltaZ = h_under_seafloor / N;
@@ -172,5 +181,5 @@ function [P_surface_required,P_bottom,...
     P_bottom_required = P_pore_bottom + P_frack;
 
     [P_surface_required,P_bottom,...
-        P_vs_depth, rho_vs_depth] = get_P_surface(mdot,depth,h_under_seafloor,P_bottom_required,g,D,k,N);
+        P_vs_depth, rho_vs_depth] = get_P_surface(mdot,depth,h_under_seafloor,P_bottom_required,g,D,k,N,supercritical);
 end
