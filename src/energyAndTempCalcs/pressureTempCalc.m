@@ -67,7 +67,7 @@ title(leg,'Injection Depth (m)')
 mdot_main = mdot(2);
 injection_depth_main = 200;
 [P_surface_required,P_bottom,...
- P_vs_depth, rho_vs_depth,P_water,...
+ P_vs_depth, rho_vs_depth,P_water,rho_water,...
  h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot_main, inner_radius_pipe, injection_depth_main, k, N);
 
 %% calculate allowable pressure in a pipe
@@ -95,46 +95,50 @@ pDiffMin = min(pDifferential);
                     k_pipe,k_insu,h_in,h_out,P_heat,rho_pipe,c_CO2,c_pipe,...
                     h_under_seafloor,deltaZ,g,N);
 
-%% Plot temperature and pressure of CO2 as a function of depth
-figure
+%% Plot temperature and pressure and density of CO2 as a function of depth
 %Pressure
-x = z;
-y1 = P_vs_depth*1e6; 
-y2 = T_CO2;
-
-yyaxis left
-plot(x,y1,'LineWidth', 1.5, 'Color','#0072BD','LineStyle',"-");
-title('Pressure and Temperature as a Function of Depth')
-ylabel('Pressure of CO2 (MPa)')
-xlabel('Depth (m)')
-
-yyaxis right
-plot(x,y2, 'LineWidth', 1.5, 'Color','#8040E6','LineStyle',"-")
-ylabel('Temperature of CO2 (K)')
-
-yyaxis left
+figure
+plot(z,P_vs_depth/1e6,'LineWidth', 1.5);
 hold on
-% constraint: injection pressure
-pInjection = 24; % MPa requirement - preliminary finding that needs more research
-plot([0,depth],[pInjection,pInjection] ,'LineWidth',1.5, 'Color', '#77AC30', 'LineStyle',"-")
-
 % constraint: maintain supercritical fluid
-plot( [0, depth], [P_supercritical, P_supercritical]/1e6,'LineWidth',1.5, 'Color', '#77AC30','LineStyle',"-")
-plot(x,P_water/1e6,'LineWidth',1.5, 'Color','#EDB120', 'LineStyle',"-")
+plot( [0, depth], [P_supercritical, P_supercritical]/1e6,'--k','LineWidth',1.5)
+plot(z,P_water/1e6,'LineWidth',1.5)
 
-legend('CO2 Pressure Chart','Injection MINIMUM Requirment', ...
-    'Supercritical MINIMUM Requirement','Water Pressure')
+title('Pressure as a Function of Depth')
+ylabel('Pressure (MPa)')
+xlabel('Depth (m)')
+legend('CO2 Pressure','Supercritical Minimum Requirement','Water Pressure')
+improvePlot
+
+% density
+figure
+plot(z,rho_vs_depth,'LineWidth', 1.5);
+hold on
+plot(z,rho_water,'LineWidth',1.5)
+
+title('Density as a Function of Depth')
+ylabel('Density (kg/m^3)')
+xlabel('Depth (m)')
+legend('CO2 Density','Water Density')
+improvePlot
+
+% temperature
+figure
+plot(z,T_CO2, 'LineWidth', 1.5)
+ylabel('Temperature (C)')
+xlabel('Depth (m)')
+improvePlot
 
 %% Plot all temperatures as a function of depth
 
 figure
-plot(x, T_CO2, x, T_s_in, '--', x, T_s_out, '-.', x, T_insu,'LineWidth',1.5)
+plot(z, T_CO2, z, T_s_in, '--', z, T_s_out, '-.', z, T_insu,'LineWidth',1.5)
 legend('CO2','Steel pipe inside','Steel pipe outside','Insulation outside')
 xlabel('Depth (m)')
 ylabel('Temperature (C)')
 
 function [P_surface_required,P_bottom,...
-        P_vs_depth, rho_vs_depth,P_water,...
+        P_vs_depth, rho_vs_depth,P_water,rho_water,...
         h_under_seafloor,deltaZ,z] = pressures(depth, P_atm, g, mdot, inner_radius_pipe, distance_below_seafloor, k, N)
 
     h_under_seafloor = depth + distance_below_seafloor;
