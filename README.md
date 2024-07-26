@@ -1,14 +1,6 @@
-# sea-lab-template
-A template repository for all SEA Lab projects
+# CASHEW
+Repository for CASHEW project, submitted for the power at sea prize.
 
-Describe your project here
+CASHEW (CArbon Sequestration Harnessing Energy from Waves) aims to utilize wave energy in a direct drive way to sequester CO2. This repository contains the models used as well as many of the figures submitted to the prize.
 
-Provide a citation to the corresponding paper
-
-Provide the authors names and emails
-
-State the license type
-
-Describe the file structure and how to run the code
-
-Include a funding acknowledgement (this is required for most grants, ie NSF has specific template text that must go here)
+To run the Simscape model, simply run the runCASHEW.m file in the src/pump_model folder. Then plot the results using the plot_results.m file in the same folder.
