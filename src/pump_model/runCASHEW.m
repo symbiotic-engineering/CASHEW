@@ -18,7 +18,7 @@ P_floor = P_ocean*1e-6 + P_frac;    % [MPa] Total pressure to frac
 xi = 1;                 % [m]   WEC Amplitude
 omega = 0.7;            % [rad/s]   Wave Frequency
 v_amp = xi*omega;       % [m/s] Velocity Amplitude
-piston_area = 0.41;     % [m^2] Area of Piston
+piston_area = 0.07;     % [m^2] Area of Piston
 
 % Pipe Parameters
 H = H_ocean + H_ground; % [m]   Total length of pipe
