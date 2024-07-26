@@ -41,7 +41,7 @@ else
 end
 
 % pipe dimensions
-outer_radius_pipe = 0.5;  % [m]
+outer_radius_pipe = 0.14;  % [m]
 thickness_pipe    = 0.01; % [m]
 thickness_insulation = 0.01; % [m] - from aerogel link above
 
@@ -51,32 +51,46 @@ outer_radius_insu = outer_radius_pipe + thickness_insulation;
 
 %% calculate CO2 surface pressure required for different massflows and different injection depths
 
-mdot_Mt_yr = [1 20:20:160]; % massflow of CO2 in megatons/yr
+mdot_Mt_yr = [1 5:5:40]; % massflow of CO2 in megatons/yr
 sec_per_yr = 365.25 * 24 * 60 * 60;
-mdot = mdot_Mt_yr * 1e9 / sec_per_yr; % convert from megatons/yr to kg/s
+mdot = [1 20:20:300];%mdot_Mt_yr * 1e9 / sec_per_yr; % convert from megatons/yr to kg/s
 
 injection_depths = 100 : 100 : 500;
 
 P_surface_required = zeros(length(mdot),length(injection_depths));
+power = zeros(size(P_surface_required));
 for i = 1:length(mdot)
     for j = 1:length(injection_depths)
-        P_surface_required(i,j) = pressures(depth, P_atm, g, mdot(i), inner_radius_pipe, injection_depths(j), k, N, supercritical);
+         [P,~,~,rho]= pressures(depth, P_atm, g, mdot(i), inner_radius_pipe, injection_depths(j), k, N, supercritical);
+         P_surface_required(i,j) = P;
+         power(i,j) = P / rho(1) * mdot(i);
     end
 end
 
-figure
-plot(mdot_Mt_yr,P_surface_required/1e6)
-hold on
+
 legend_text = cellstr(num2str(injection_depths'));
+figure
+subplot 121
+plot(mdot, power/1e3)
+xlabel('Desired Massflow of CO2 kg/s')%(Mt/yr)')
+ylabel('Required WEC Power (kW)')
+leg = legend(legend_text);
+title(leg,'Injection Depth (m)')
+improvePlot
+
+subplot 122
+%plot(mdot_Mt_yr,P_surface_required/1e6)
+plot(mdot,P_surface_required/1e6)
 if supercritical
+    hold on
     plot([0 max(mdot_Mt_yr)],P_supercritical*[1 1]/1e6,'k--')
     legend_text = [legend_text;'Supercritical'];
 end
-xlabel('Desired Massflow of CO2 (Mt/yr)')
+xlabel('Desired Massflow of CO2 kg/s')%(Mt/yr)')
 ylabel('Required Pressure at Surface (MPa)')
-improvePlot
 leg = legend(legend_text);
 title(leg,'Injection Depth (m)')
+improvePlot
 
 %% single massflow and injection depth to use for rest of analysis
 mdot_main = mdot(2);
@@ -194,7 +208,7 @@ function [P_surface_required,P_bottom,...
     
     pore_multiplier = 1; % factor of 1 to 1.8 https://petrowiki.spe.org/Methods_to_determine_pore_pressure
     P_pore_bottom = pore_multiplier * P_water(end);
-    P_frack = 1e6 * 0.35 * (distance_below_seafloor/100)^1.5; % rough fit of Fig 3 https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2007GL031560
+    P_frack = 2 * 1e6 * 0.35 * (distance_below_seafloor/100)^1.5; % rough fit of Fig 3 https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2007GL031560
     P_bottom_required = P_pore_bottom + P_frack;
 
     [P_surface_required,P_bottom,...
