@@ -53,9 +53,9 @@ outer_radius_insu = outer_radius_pipe + thickness_insulation;
 
 mdot_Mt_yr = [1 5:5:40]; % massflow of CO2 in megatons/yr
 sec_per_yr = 365.25 * 24 * 60 * 60;
-mdot = [1 20:20:300];%mdot_Mt_yr * 1e9 / sec_per_yr; % convert from megatons/yr to kg/s
+mdot = [1 10 25:25:200];%mdot_Mt_yr * 1e9 / sec_per_yr; % convert from megatons/yr to kg/s
 
-injection_depths = 100 : 100 : 500;
+injection_depths = 100 : 100 : 400;
 
 P_surface_required = zeros(length(mdot),length(injection_depths));
 power = zeros(size(P_surface_required));
@@ -74,6 +74,7 @@ subplot 121
 plot(mdot, power/1e3)
 xlabel('Desired Massflow of CO2 kg/s')%(Mt/yr)')
 ylabel('Required WEC Power (kW)')
+title('Power')
 leg = legend(legend_text);
 title(leg,'Injection Depth (m)')
 improvePlot
@@ -90,6 +91,7 @@ xlabel('Desired Massflow of CO2 kg/s')%(Mt/yr)')
 ylabel('Required Pressure at Surface (MPa)')
 leg = legend(legend_text);
 title(leg,'Injection Depth (m)')
+title('Pressure')
 improvePlot
 
 %% single massflow and injection depth to use for rest of analysis
