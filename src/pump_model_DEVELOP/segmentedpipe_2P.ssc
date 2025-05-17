@@ -1,0 +1,41 @@
+component segmentedpipe_2P
+  parameters
+     N = 10; 			% Number of segments
+     g = {9.8, 'm/s^2'};        % gravitational acceleration
+     segm_length = { 5, 'm' }; 	% Length of each segment
+     area = {0.7543, 'm^2'};    % Cross Sectional Area
+     Dh = {0.98, 'm'};          % Hydraulic Diameter
+     T_init = {305, 'K'};       % Initial Temperature
+     p_init = {8, 'MPa'};       % Initial Pressure
+  end
+
+  % Ports at the two ends of the pipeline
+  nodes
+     A = foundation.two_phase_fluid.two_phase_fluid; % A:left
+     B = foundation.two_phase_fluid.two_phase_fluid; % B:right
+  end
+  
+  % Declare array of N components  
+  for i=1:N
+     components (ExternalAccess=none)
+	    pipe(i) = vertical_pipe(...
+             length = segm_length,...
+             area = area, Dh = Dh,...
+             g = g,...
+             T_init = T_init, p_init = p_init);
+     end
+  end
+
+  % Connect all segments in series
+  for i=1:(N-1)
+     connections
+	    connect(pipe(i).B, pipe(i+1).A);
+     end
+  end
+
+  % Connect two ends of pipeline to first and last segment, respectively
+  connections
+     connect(A, pipe(1).A);
+     connect(B, pipe(N).B);
+  end
+end

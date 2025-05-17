@@ -1,0 +1,5 @@
+To run the simscape model, simply adjust parameters as desired in the runCASHEW.m file and then run the m-file. Results used in the power at sea CONCEPT phase are preloaded. To plot results, simply run the plot_results.m file after running the runCASHEW.m file.
+
+Edits made for DEVELOP phase: coupled the model to WEC-Sim to allow for better simulation of wave/WEC dynamics; adjust parameters in the runCASHEW_2.m file, and if needed adjust parameters in wecSimInputFile.m; run the runCASHEW_2.m file to proceed with the simulation. Plots of power requirements are currently plotted for convenience.
+Note about successive simulations: running a simulation back-to-back may result in the simulation not proceeding - the mechanics explorer popup will be greyed out, even when the simulation should be running. To fix this, either stop the simulation and start it again, or after a successful simiulation, open and close the CASHEW.slx Simscape model. This fixes the issue.
+Additional (important) note: You must have WEC-Sim installed on your device for this simulation to work. Visit https://wec-sim.github.io/WEC-Sim/dev/user/getting_started.html#download-wec-sim to install.
