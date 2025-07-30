@@ -1,5 +1,5 @@
 component aquiferblock
-% Flow Resistance (2P) : 1.5
+% Aquifer Resistance (2P) : 1.5
 % This block represents a generic pressure loss in a two-phase fluid
 % network. The drop in pressure is proportional to the square of the mass
 % flow rate and to the specific volume. The proportionality constant is
@@ -15,18 +15,15 @@ end
 
 parameters
     K              = {3e-12, 'm^2'   }; 
-    mu             = {6e-5,   'Pa*s'  }; 
+    %mu             = {6e-5,   'Pa*s'  }; 
     h              = {3e2,     'm'}; 
-    area           = {5e6 'm^2'}; 
 end
 
 
 % Parameter checks
 equations
     assert(K > 0)
-    assert(mu > 0)
     assert(h > 0)
-    assert(area > 0)
 end
 
 variables (Access = protected)
@@ -58,7 +55,9 @@ intermediates (Access = private, ExternalAccess = none)
     v_A_in = tablelookup(A.unorm_TLU, A.p_TLU, A.v_TLU, unorm_A_in, p_A, interpolation = linear, extrapolation = nearest);
     v_B_in = tablelookup(A.unorm_TLU, A.p_TLU, A.v_TLU, unorm_B_in, p_B, interpolation = linear, extrapolation = nearest);
     v_avg = (v_A_in + v_B_in)/2;
-
+    mu_A = tablelookup(A.unorm_TLU, A.p_TLU, A.nu_TLU, unorm_A_in, p_A, interpolation = linear, extrapolation = nearest)/v_A_in;
+    mu_B = tablelookup(A.unorm_TLU, A.p_TLU, A.nu_TLU, unorm_B_in, p_B, interpolation = linear, extrapolation = nearest)/v_B_in;
+    mu = (mu_A + mu_B)/2;
     Q = mdot_A * v_avg;
 
 end
@@ -86,8 +85,8 @@ end
 
 % Internal components that calculate energy convection at ports A and B
 components (ExternalAccess = none)
-    convection_A = foundation.two_phase_fluid.port_convection(flow_area = area, length_scale = sqrt(4*area/pi));
-    convection_B = foundation.two_phase_fluid.port_convection(flow_area = area, length_scale = sqrt(4*area/pi));
+    convection_A = foundation.two_phase_fluid.port_convection(flow_area = K, length_scale = sqrt(4*K/pi));
+    convection_B = foundation.two_phase_fluid.port_convection(flow_area = K, length_scale = sqrt(4*K/pi));
 end
 connections
     connect(A, convection_A.port)

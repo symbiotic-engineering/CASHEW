@@ -5,20 +5,21 @@ P = 8;                              % [MPa] Intake CO2 Pressure
 T = 273.15;                         % [K]   Temperature of CO2
  
 % Environmental Parameters
-H_ocean = 2700;                     % [m]   Depth of Ocean
-H_ground = 200;                     % [m]   Distance Underground
+H_ocean = 2900;                     % [m]   Depth of Ocean
+H_ground = 0;                     % [m]   Distance Underground
 g = 9.8;                            % [m/s^2]   Gravitational Acceleration
 rho_w = 1025;                       % [kg/m^3]  Density of Seawater
 P_ocean = rho_w*g*H_ocean;          % [Pa]  Pressure at the ocean floor
-P_frac = 2;                         % [MPa] Pressure required to break rocks
-P_floor = P_ocean*1e-6 + P_frac;    % [MPa] Total pressure to frac
-
+P_floor = P_ocean*1e-6;             % [MPa] in MPA
+%P_frac = 2;                         % [MPa] Pressure required to break rocks
+K = 7e-12;                          % [m^2] Aquifer Permeability
+h = 1;                              % [m]   Aquifer Thickness
 
 % Piston/Wave Parameters
-xi = 1;                             % [m]   WEC Amplitude
-omega = 0.7;                        % [rad/s]   Wave Frequency
-v_amp = xi*omega;                   % [m/s] Velocity Amplitude
-piston_area = 0.03;                 % [m^2] Area of Piston
+%xi = 1;                             % [m]   WEC Amplitude
+%omega = 0.7;                        % [rad/s]   Wave Frequency
+%v_amp = xi*omega;                   % [m/s] Velocity Amplitude
+piston_area = 0.05;                 % [m^2] Area of Piston
 
 % Pipe Parameters
 H = H_ocean + H_ground;             % [m]   Total length of pipe
@@ -42,6 +43,13 @@ plot(simout.Aquifer_Power)
 xlabel('Time [s]')
 ylabel('Power [W]')
 title('Power used to Sequester CO2 into Aquifer')
+
+figure
+plot(simout.Aquifer_Power)
+xlabel('Time [s]')
+ylabel('Power [W]')
+title('Power used to Sequester CO2 into Aquifer')
+
 
 % Currently does not work, as enabling the volumetric flow rate sensor at
 % the top of the pipe breaks the simulation

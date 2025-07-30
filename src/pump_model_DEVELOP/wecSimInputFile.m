@@ -3,16 +3,26 @@ simu = simulationClass();                % Initialize simulationClass
 simu.simMechanicsFile = 'CASHEW.slx';    % Simulink Model File
 simu.startTime = 0;                      % Simulation Start Time [s] 
 simu.rampTime = 0;                       % Wave Ramp Time [s] 
-simu.endTime= 100;                       % Simulation End Time [s]
+simu.endTime= 50;                       % Simulation End Time [s]
 simu.solver = 'daessc';                  % Solver; 'ode45', 'ode23tb','daessc', etc. daessc seems to work best
 simu.mode = 'normal';                    % 'accelerator', 'normal' 
 simu.dt = 0.01;                         % Simulation time-step [s] 0.001 may give slightly better results.
+simu.explorer = 'off';                  % Turn SimMechanics Explorer (on/off)
 
 %% Wave Information  
 % Regular Waves 
+wave_pow = 61.8e3;
+period = 12.11;
+A = sqrt(wave_pow/(1/(8*pi)*rho_w*g^2*period));
 waves = waveClass('regular');   % Initialize waveClass
-waves.height = 2;               % Wave Height [m]
-waves.period = 8.97597901;      % Wave Period [s]
+waves.height = 3.14;               % Wave Height [m]
+waves.period = 12.11;      % Wave Period [s]
+
+% irregular waves
+%waves = waveClass('irregular');         % Initialize Wave Class and Specify Type
+%waves.height = 3.14;                     % Significant Wave Height [m]
+%waves.period = 12.11;                       % Peak Period [s]
+%waves.spectrumType = 'PM';              % Specify Spectrum Type
 
 %% Body Data
 % Float
