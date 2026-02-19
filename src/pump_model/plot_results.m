@@ -18,11 +18,13 @@ mdot = mdot(ii:end);
 figure('Name','simscape results')
 subplot(2,1,1)
 line(time,mdot,'color',blue,'linewidth',2)
+title('(a)')
 xticklabels([])
 ylabel({'Sequestration [kg/s]'})
 %ylim([0,300])
 figfix('Print1',7);
 subplot(2,1,2)
+title('(b)')
 line(time,F,'color',blue,'linewidth',2)
 xlabel('time [s]')
 ylabel('Force on WEC [MN]')

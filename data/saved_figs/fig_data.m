@@ -1,3 +1,5 @@
+% This can be used to extract data from the saved figures, just change the figure to open and where you save the data
+
 fig = openfig('MassFlowRate_Gulf_of_America.fig');
 ax = findall(fig, 'type', 'axes');
 for i = 1:length(ax)
